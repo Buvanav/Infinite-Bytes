@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FinBridge – Worker Insights</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f7fb; margin:0; padding:0; }
+    .container { max-width:1000px; margin:30px auto; background:#fff; padding:24px 32px;
+                 border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+    h1 { margin-top:0; color:#002b5c; }
+    p.subtitle { color:#555; margin-bottom:20px; }
+
+    .row { display:flex; gap:12px; align-items:center; margin-bottom:16px; }
+    input[type="text"], input[type="number"] { 
+      padding:8px 10px; border-radius:6px; border:1px solid #ccd3e0; font-size:14px;
+    }
+    button {
+      padding:8px 14px; border-radius:6px; border:none;
+      background:#004b8d; color:#fff; font-size:14px; cursor:pointer;
+    }
+    button.secondary { background:#5865f2; }
+    button:disabled { opacity:0.6; cursor:not-allowed; }
+
+    .card { margin-top:16px; padding:14px 18px; border-radius:10px; background:#f0f6ff; }
+    .card h3 { margin-top:0; margin-bottom:8px; }
+
+    .grid-2 { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:16px; }
+
+    table { width:100%; border-collapse:collapse; margin-top:8px; font-size:13px; }
+    th, td { border:1px solid #dde4f2; padding:6px 8px; text-align:left; }
+    th { background:#e3ecff; }
+    .error { color:#b00020; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FinBridge 2.0 – Worker Insights</h1>
+    <p class="subtitle">
+      Enter a worker ID to view KYC, recent transactions, and a simple credit score from backend 2.0 (CSV powered).
+    </p>
+
+    <!-- Worker ID + actions -->
+    <div class="row">
+      <label for="worker_id">Worker ID</label>
+      <input id="worker_id" type="text" placeholder="e.g., W001">
+      <button onclick="loadProfile()">Load profile</button>
+      <button class="secondary" onclick="predictScore()">Predict score</button>
+    </div>
+    <div id="error" class="error"></div>
+
+    <div class="grid-2">
+      <!-- KYC + summary card -->
+      <div class="card" id="kyc-card" style="display:none;">
+        <h3>KYC & Summary</h3>
+        <p id="kyc-text"></p>
+        <p id="summary-text"></p>
+      </div>
+
+      <!-- Prediction card -->
+      <div class="card" id="predict-card" style="display:none;">
+        <h3>Credit Score (Rule-based)</h3>
+        <p id="predict-text"></p>
+      </div>
+    </div>
+
+    <!-- Transactions history -->
+    <div class="card" id="txn-card" style="display:none;">
+      <h3>Recent transactions</h3>
+      <table id="txn-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Type</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8001";
+
+    const errorDiv = document.getElementById("error");
+    const kycCard = document.getElementById("kyc-card");
+    const kycText = document.getElementById("kyc-text");
+    const summaryText = document.getElementById("summary-text");
+    const txnCard = document.getElementById("txn-card");
+    const txnBody = document.querySelector("#txn-table tbody");
+    const predictCard = document.getElementById("predict-card");
+    const predictText = document.getElementById("predict-text");
+
+    async function loadProfile() {
+      const workerId = document.getElementById("worker_id").value.trim();
+      errorDiv.textContent = "";
+      kycCard.style.display = "none";
+      txnCard.style.display = "none";
+
+      if (!workerId) {
+        errorDiv.textContent = "Please enter a worker ID (e.g., W001).";
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE}/worker/${encodeURIComponent(workerId)}`);
+        if (!resp.ok) {
+          errorDiv.textContent = "Worker not found.";
+          return;
+        }
+        const data = await resp.json();
+
+        const k = data.kyc;
+        const inc = data.income || [];
+        const lastIncome = inc.length > 0 ? inc[inc.length - 1] : null;
+
+        kycText.textContent =
+          `${k.name} (${k.worker_id || workerId}), age ${k.age}, ` +
+          `PAN ${k.pan}, city ${k.city || ""}`.trim();
+
+        if (lastIncome) {
+          summaryText.textContent =
+            `Recent average monthly income: ₹${lastIncome.avg_monthly_income || lastIncome.amount || "NA"}, ` +
+            `months on platform (approx): ${data.income.length}`;
+        } else {
+          summaryText.textContent = "No income history available.";
+        }
+        kycCard.style.display = "block";
+
+        // Fill transactions table
+        txnBody.innerHTML = "";
+        (data.transactions || []).forEach(txn => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${txn.date}</td>
+            <td>₹${txn.amount}</td>
+            <td>${txn.type}</td>
+            <td>${txn.source || ""}</td>
+          `;
+          txnBody.appendChild(tr);
+        });
+        if ((data.transactions || []).length > 0) {
+          txnCard.style.display = "block";
+        }
+      } catch (e) {
+        console.error(e);
+        errorDiv.textContent = "Error contacting backend 2.0.";
+      }
+    }
+
+    async function predictScore() {
+      const workerId = document.getElementById("worker_id").value.trim();
+      errorDiv.textContent = "";
+      predictCard.style.display = "none";
+
+      if (!workerId) {
+        errorDiv.textContent = "Enter a worker ID first.";
+        return;
+      }
+
+      // For now, just send defaults. You can wire real features later.
+      const payload = {
+        worker_id: workerId,
+        age: 28,
+        hours_worked: 40,
+        avg_monthly_income: 25000
+      };
+
+      try {
+        const resp = await fetch(`${API_BASE}/predict`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+          const t = await resp.text();
+          throw new Error(t);
+        }
+        const data = await resp.json();
+        predictText.textContent =
+          `Worker: ${data.worker_id} | Score: ${data.credit_score} | ` +
+          `Status: ${data.status} | Amount: ₹${data.loan_amount}`;
+        predictCard.style.display = "block";
+      } catch (e) {
+        console.error(e);
+        errorDiv.textContent = "Error during prediction.";
+      }
+    }
+  </script>
+</body>
+</html>

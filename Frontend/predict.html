@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FinBridge – Risk Prediction</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f5f7fb; margin: 0; padding: 0; }
+    .container {
+      max-width: 900px; margin: 40px auto; background: #ffffff;
+      padding: 24px 32px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    h1 { margin-top: 0; color: #002b5c; }
+    p.subtitle { color: #555; margin-bottom: 24px; }
+    form { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px 24px; }
+    .field { display: flex; flex-direction: column; }
+    label { font-size: 14px; margin-bottom: 6px; color: #222; }
+    input { padding: 8px 10px; border-radius: 6px; border: 1px solid #ccd3e0; font-size: 14px; }
+    input:focus {
+      outline: none; border-color: #004b8d; box-shadow: 0 0 0 1px #004b8d33;
+    }
+    .full-width { grid-column: 1 / -1; }
+    button {
+      margin-top: 12px; padding: 10px 18px; border-radius: 8px;
+      border: none; background-color: #004b8d; color: #fff;
+      font-size: 15px; cursor: pointer;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .result-card {
+      margin-top: 24px; padding: 16px 20px; border-radius: 10px;
+      background-color: #f0f6ff; border: 1px solid #c5d7f2;
+    }
+    .error { margin-top: 16px; color: #b00020; }
+    .worker-row { display: flex; gap: 8px; align-items: center; }
+    .worker-row button { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FinBridge – Risk Prediction</h1>
+    <p class="subtitle">
+      Enter the worker details below and click Predict to get the model result from FastAPI.
+    </p>
+
+    <form id="predict-form">
+      <!-- WORKER ID + FETCH BUTTON -->
+      <div class="field">
+        <label for="worker_id">Worker ID</label>
+        <div class="worker-row">
+          <input id="worker_id" name="worker_id" type="text" placeholder="e.g., W001" required />
+          <button type="button" onclick="fetchWorkerDetails()">Fetch details</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="avg_monthly_income">Avg monthly income</label>
+        <input id="avg_monthly_income" name="avg_monthly_income" type="number" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label for="income_stability">Income stability (0–10)</label>
+        <input id="income_stability" name="income_stability" type="number" min="0" max="10" />
+      </div>
+
+      <div class="field">
+        <label for="active_months_on_platform">Active months on platform</label>
+        <input id="active_months_on_platform" name="active_months_on_platform" type="number" />
+      </div>
+
+      <div class="field">
+        <label for="tasks_or_delivery_per_month">Tasks / deliveries per month</label>
+        <input id="tasks_or_delivery_per_month" name="tasks_or_delivery_per_month" type="number" />
+      </div>
+
+      <div class="field">
+        <label for="avg_bank_balance">Average bank balance</label>
+        <input id="avg_bank_balance" name="avg_bank_balance" type="number" step="0.01" />
+      </div>
+
+      <div class="field">
+        <label for="past_loan">Past loan (0–10)</label>
+        <input id="past_loan" name="past_loan" type="number" min="0" max="10" step="1" />
+      </div>
+
+      <div class="field">
+        <label for="repayment_percentage">Repayment percentage</label>
+        <input id="repayment_percentage" name="repayment_percentage" type="number" min="0" max="100" />
+      </div>
+
+      <div class="field">
+        <label for="missed_emi">Missed EMI count</label>
+        <input id="missed_emi" name="missed_emi" type="number" />
+      </div>
+
+      <div class="field">
+        <label for="income_shock">Income shock (0–1)</label>
+        <input id="income_shock" name="income_shock" type="number" min="0" max="1" />
+      </div>
+
+      <div class="field full-width">
+        <button type="submit" id="predict-button">Predict</button>
+      </div>
+    </form>
+
+    <div id="error" class="error"></div>
+    <div id="result" class="result-card" style="display:none;">
+      <h3>Prediction result</h3>
+      <p id="result-text"></p>
+    </div>
+  </div>
+  <div class="center-div" >
+    <button type="button"
+        class="dash-btn-outline"
+        onclick="window.location.href='credit-score.html'">
+  Next
+</button>
+</div>
+<script>
+  const form = document.getElementById("predict-form");
+  const button = document.getElementById("predict-button");
+  const errorDiv = document.getElementById("error");
+  const resultCard = document.getElementById("result");
+  const resultText = document.getElementById("result-text");
+
+  // ---------- PREDICT (POST) ----------
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    errorDiv.textContent = "";
+    resultCard.style.display = "none";
+    button.disabled = true;
+    button.textContent = "Predicting...";
+
+    const payload = {
+      worker_id: document.getElementById("worker_id").value,
+      avg_monthly_income: Number(document.getElementById("avg_monthly_income").value || 0),
+      income_stability: Number(document.getElementById("income_stability").value || 0),
+      active_months_on_platform: Number(document.getElementById("active_months_on_platform").value || 0),
+      tasks_or_delivery_per_month: Number(document.getElementById("tasks_or_delivery_per_month").value || 0),
+      avg_bank_balance: Number(document.getElementById("avg_bank_balance").value || 0),
+      past_loan: Number(document.getElementById("past_loan").value || 0),
+      repayment_percentage: Number(document.getElementById("repayment_percentage").value || 0),
+      missed_emi: Number(document.getElementById("missed_emi").value || 0),
+      income_shock: Number(document.getElementById("income_shock").value || 0)
+    };
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error("Server error: " + text);
+      }
+
+      const data = await response.json();
+
+      // Save score for next page
+      localStorage.setItem("credit_score", data.credit_score);
+
+      // Show result on this page
+      resultText.textContent =
+        `Worker: ${data.worker_id} | ` +
+        `Credit score: ${data.credit_score} | ` +
+        `Loan status: ${data.loan_status} | ` +
+        `Confidence: ${data.confidence}`;
+      resultCard.style.display = "block";
+    } catch (err) {
+      errorDiv.textContent = err.message || "Something went wrong.";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Predict";
+    }
+  });
+
+  // ---------- FETCH DETAILS (GET) ----------
+  async function fetchWorkerDetails() {
+    const workerId = document.getElementById("worker_id").value.trim();
+    if (!workerId) {
+      alert("Please enter Worker ID like W001 or W002");
+      return;
+    }
+
+    errorDiv.textContent = "";
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/worker/${encodeURIComponent(workerId)}`
+      );
+      if (!response.ok) {
+        alert("Worker not found");
+        return;
+      }
+
+      const w = await response.json();
+
+      document.getElementById("avg_monthly_income").value = w.avg_monthly_income;
+      document.getElementById("income_stability").value = w.income_stability;
+      document.getElementById("active_months_on_platform").value = w.active_months_on_platform;
+      document.getElementById("tasks_or_delivery_per_month").value = w.tasks_or_delivery_per_month;
+      document.getElementById("avg_bank_balance").value = w.avg_bank_balance;
+      document.getElementById("past_loan").value = w.past_loan;
+      document.getElementById("repayment_percentage").value = w.repayment_percentage;
+      document.getElementById("missed_emi").value = w.missed_emi;
+      document.getElementById("income_shock").value = w.income_shock;
+    } catch (error) {
+      console.error(error);
+      alert("Error contacting server");
+    }
+  }
+</script>
+
+</body>
+</html>

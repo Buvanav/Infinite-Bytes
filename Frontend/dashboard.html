@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>FinBridge - Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="dash-body">
+
+  <!-- Top app bar -->
+  <!-- Top app bar -->
+  <!-- Top app bar -->
+  <header class="dash-topbar">
+    <button class="icon-btn menu-toggle-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003366"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" x2="20" y1="12" y2="12" />
+        <line x1="4" x2="20" y1="6" y2="6" />
+        <line x1="4" x2="20" y1="18" y2="18" />
+      </svg>
+    </button>
+
+    <span class="dash-title">Dashboard</span>
+
+    <button class="icon-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003366"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg>
+      <!-- Notification bell instead of search for better dashboard context -->
+    </button>
+  </header>
+
+  <!-- Page content -->
+  <main class="dash-main">
+    <!-- Income card -->
+    <section class="income-card">
+      <div class="income-card-header">
+        <span class="income-title">Daily Income</span>
+        <span class="income-flag">🇮🇳</span>
+      </div>
+      <div class="income-amount">Rs.3000</div>
+    </section>
+
+    <!-- Buttons row -->
+    <div class="dash-actions">
+      <button class="dash-btn-primary">+Add Proof</button>
+      <a href="predict.html">
+  <button class="dash-btn-outline" type="button"> Check Credit Score</button>
+</a>
+    </div>
+
+    <!-- Features Grid (Home Page style) -->
+    <section class="features-grid">
+      <h2 class="section-title">Features</h2>
+      <div class="features-row">
+        <a href="income.html" class="feature-card">
+          <div class="feature-icon" style="background: #e0f2fe; color: #003366;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+            </svg>
+          </div>
+          <span class="feature-name">Income</span>
+        </a>
+        <a href="credit-score.html" class="feature-card">
+          <div class="feature-icon" style="background: #fef9c3; color: #003366;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="m19 9-5 5-4-4-3 3" />
+            </svg>
+          </div>
+          <span class="feature-name">Credit Score</span>
+        </a>
+        <a href="insurance.html" class="feature-card">
+          <div class="feature-icon" style="background: #dcfce7; color: #003366;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+            </svg>
+          </div>
+          <span class="feature-name">Insurance</span>
+        </a>
+        <a href="chatbot.html" class="feature-card">
+          <div class="feature-icon" style="background: #f3e8ff; color: #003366;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+            </svg>
+          </div>
+          <span class="feature-name">FinBot</span>
+        </a>
+      </div>
+    </section>
+
+        <!-- Worker Insights (Backend 2.0) -->
+    <section class="recent">
+      <div class="recent-header">
+        <h2>Worker Insights</h2>
+      </div>
+
+      <div class="activity-card">
+        <div class="activity-left">
+          <div class="activity-icon">W</div>
+          <div>
+            <div class="activity-title">Worker ID lookup</div>
+            <div class="activity-time">
+              <label for="wi-worker_id">Worker ID</label>
+              <input id="wi-worker_id" type="text" placeholder="e.g., W001">
+            </div>
+          </div>
+        </div>
+        <div class="activity-amount">
+          <button class="dash-btn-primary" onclick="wiLoadProfile()">Load profile</button>
+          <a href="predict.html">
+          <button class="dash-btn-outline" onclick="wiPredictScore()">Predict score</button>
+        </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="wi-error" class="error"></div>
+
+      <div class="activity-card" id="wi-kyc-card" style="display:none;">
+        <div>
+          <h3>KYC & Summary</h3>
+          <p id="wi-kyc-text"></p>
+          <p id="wi-summary-text"></p>
+        </div>
+      </div>
+
+      <div class="activity-card" id="wi-predict-card" style="display:none;">
+        <div>
+          <h3>Credit Score (Rule-based)</h3>
+          <p id="wi-predict-text"></p>
+        </div>
+      </div>
+
+      <div class="activity-card" id="wi-txn-card" style="display:none;">
+        <div>
+          <h3>Recent transactions</h3>
+          <table id="wi-txn-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Type</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="bottom-item bottom-item-active">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    </a>
+    <a href="income.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+      </svg>
+    </a> <!-- Changed to card/wallet icon -->
+    <a href="#" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14" />
+        <path d="M12 5v14" />
+      </svg>
+    </a>
+    <a href="credit-score.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v18h18" />
+        <path d="m19 9-5 5-4-4-3 3" />
+      </svg>
+    </a>
+    <a href="chatbot.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+      </svg>
+    </a>
+  </nav>
+
+  <script src="sidebar.js"></script>
+  <script src="worker-insights.js"></script>
+</body>
+
+</html>

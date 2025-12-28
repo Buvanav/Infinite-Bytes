@@ -1,0 +1,21 @@
+worker_id,has_health_insurance,premium_per_month,insurer,coverage_amount
+W001,0,0.0,GigCare,0
+W002,0,0.0,None,0
+W003,0,0.0,GigCare,0
+W004,1,556.0,GigCare,615208
+W005,0,0.0,None,0
+W006,0,0.0,None,0
+W007,0,0.0,GigCare,0
+W008,0,0.0,None,0
+W009,0,0.0,Finbridge Secure,0
+W010,0,0.0,GigCare,0
+W011,0,0.0,GigCare,0
+W012,1,996.0,None,416635
+W013,0,0.0,GigCare,0
+W014,0,0.0,None,0
+W015,1,1199.0,GigCare,434432
+W016,0,0.0,GigCare,0
+W017,0,0.0,Finbridge Secure,0
+W018,0,0.0,Finbridge Secure,0
+W019,0,0.0,None,0
+W020,0,0.0,GigCare,0

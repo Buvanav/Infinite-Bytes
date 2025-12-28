@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>FinBridge - Income</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="income.css" />
+</head>
+
+<body class="dash-body">
+
+  <!-- Top app bar -->
+  <!-- Top app bar -->
+  <header class="dash-topbar">
+    <button class="icon-btn menu-toggle-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003366"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" x2="20" y1="12" y2="12" />
+        <line x1="4" x2="20" y1="6" y2="6" />
+        <line x1="4" x2="20" y1="18" y2="18" />
+      </svg>
+    </button>
+    <h1 class="dash-title">Income</h1>
+    <button class="icon-btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#003366"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="page">
+    <!-- Chart -->
+    <section class="card chart-card">
+      <div class="chart">
+        <div class="chart-item">
+          <div class="chart-bar h-75"></div>
+          <span class="chart-day">Mon</span>
+          <span class="chart-val">₹ 3000</span>
+        </div>
+        <div class="chart-item">
+          <div class="chart-bar h-55"></div>
+          <span class="chart-day">Tue</span>
+          <span class="chart-val">₹ 2100</span>
+        </div>
+        <div class="chart-item">
+          <div class="chart-bar h-80"></div>
+          <span class="chart-day">Wed</span>
+          <span class="chart-val">₹ 2800</span>
+        </div>
+        <div class="chart-item">
+          <div class="chart-bar h-45"></div>
+          <span class="chart-day">Thu</span>
+          <span class="chart-val">₹ 1900</span>
+        </div>
+        <div class="chart-item active">
+          <div class="chart-bar h-40"></div>
+          <span class="chart-day">Fri</span>
+          <span class="chart-val">₹ 1500</span>
+        </div>
+        <div class="chart-item">
+          <div class="chart-bar h-50"></div>
+          <span class="chart-day">Sat</span>
+          <span class="chart-val">₹ 1700</span>
+        </div>
+        <div class="chart-item">
+          <div class="chart-bar h-25"></div>
+          <span class="chart-day">Sun</span>
+          <span class="chart-val">₹ 500</span>
+        </div>
+      </div>
+
+      <div class="avg-row">
+        <span>Average monthly income</span>
+        <span class="avg-val">Rs.30000</span>
+      </div>
+    </section>
+
+    <!-- Income list -->
+    <section class="card list-card">
+      <div class="list-header">
+        <div>
+          <h2>Income</h2>
+          <p class="subtitle">Today’s Income • From 3 sources</p>
+        </div>
+        <button class="chip-btn">+ Add Income</button>
+      </div>
+
+      <div class="source">
+        <div class="source-left">
+          <div class="logo-box uber">Uber</div>
+          <div>
+            <div class="source-name">Uber</div>
+            <div class="source-sub">4 rides</div>
+          </div>
+        </div>
+        <div class="source-amt">Rs.620</div>
+      </div>
+
+      <div class="source">
+        <div class="source-left">
+          <div class="logo-box zomato">Z</div>
+          <div>
+            <div class="source-name">Zomato</div>
+            <div class="source-sub">2 deliveries</div>
+          </div>
+        </div>
+        <div class="source-amt">Rs.440</div>
+      </div>
+
+      <div class="source">
+        <div class="source-left">
+          <div class="logo-box freelance">F</div>
+          <div>
+            <div class="source-name">Freelance Task</div>
+            <div class="source-sub">1 task</div>
+          </div>
+        </div>
+        <div class="source-amt">Rs.500</div>
+      </div>
+
+      <p class="info-note">
+        ⭐ Today’s income improved your credit score by +0.1
+      </p>
+    </section>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav class="bottom-nav">
+    <a href="dashboard.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    </a>
+    <a href="income.html" class="bottom-item bottom-item-active">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+      </svg>
+    </a>
+    <a href="#" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14" />
+        <path d="M12 5v14" />
+      </svg>
+    </a>
+    <a href="credit-score.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v18h18" />
+        <path d="m19 9-5 5-4-4-3 3" />
+      </svg>
+    </a>
+    <a href="chatbot.html" class="bottom-item">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+      </svg>
+    </a>
+  </nav>
+  <script src="sidebar.js"></script>
+</body>
+
+</html>
