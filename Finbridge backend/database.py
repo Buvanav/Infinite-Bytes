@@ -1,8 +1,7 @@
-# database.py
+from sqlmodel import SQLModel, create_engine, Session
 from typing import Generator
-from sqlmodel import SQLModel, Session, create_engine  # ✅ need these imports
 
-sqlite_file_name = "finbridge.db"
+sqlite_file_name = "finbridge2.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 engine = create_engine(
@@ -13,7 +12,7 @@ engine = create_engine(
 
 
 def create_db_and_tables() -> None:
-    from models import Worker  # ensure models are imported/registered
+    from models import Worker, Transaction  # ensure models are registered
     SQLModel.metadata.create_all(engine)
 
 

@@ -1,20 +1,22 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List
 
-class CreditInput(BaseModel):
+
+class PredictRequest(BaseModel):
     worker_id: str
-    avg_monthly_income: float
-    income_stability: float
-    active_months_on_platform: int
-    tasks_or_delivery_per_month: int
-    avg_bank_balance: float
-    past_loan: int
-    repayment_percentage: float
-    missed_emi: int
-    income_shock: int
+    age: float = 28.0
+    hours_worked: float = 40.0
+    avg_monthly_income: float = 25000.0
 
-class CreditResponse(BaseModel):
+
+class PredictResponse(BaseModel):
     worker_id: str
     credit_score: float
-    loan_status: str
-    confidence: str = "97.5%"
+    status: str
+    loan_amount: float
+    message: str
+
+
+class WorkerSummary(BaseModel):
+    id: str
+    name: str

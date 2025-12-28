@@ -1,195 +1,100 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+from sqlmodel import Session
 import pandas as pd
-import joblib
-import uvicorn
+import os
 
-app = FastAPI(title="Gig Worker Credit Score API ")
+from database import create_db_and_tables, get_session
+from schemas import PredictRequest, PredictResponse, WorkerSummary
+from models import Worker
 
-# ---------- CORS SETUP ----------
+app = FastAPI(title="Finbridge")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5500", "http://localhost:5500"],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# --------------------------------
 
-# ---------- PERMANENT WORKERS DB ----------
-workers_db = {
-    "W001": {
-        "worker_id": "W001",
-        "avg_monthly_income": 45000,
-        "income_stability": 8,
-        "active_months_on_platform": 12,
-        "tasks_or_delivery_per_month": 200,
-        "avg_bank_balance": 55000,
-        "past_loan": 2,
-        "repayment_percentage": 94,
-        "missed_emi": 2,
-        "income_shock": 0,
-    },
-    "W002": {
-        "worker_id": "W002",
-        "avg_monthly_income": 30000,
-        "income_stability": 6,
-        "active_months_on_platform": 6,
-        "tasks_or_delivery_per_month": 120,
-        "avg_bank_balance": 30000,
-        "past_loan": 1,
-        "repayment_percentage": 90,
-        "missed_emi": 1,
-        "income_shock": 1,
-    },
-}
-# ------------------------------------------
-
-# ✅ MODEL LOAD
-model = joblib.load("credit_model.pkl")
-features = [
-    "avg_monthly_income",
-    "income_stability",
-    "active_months_on_platform",
-    "tasks_or_delivery_per_month",
-    "avg_bank_balance",
-    "past_loan",
-    "repayment_percentage",
-    "missed_emi",
-    "income_shock",
-]
+# ---------- CSV LOAD ----------
+data_dir = "demo_data"
+transactions = pd.read_csv(os.path.join(data_dir, "transactions.csv"))
+kyc = pd.read_csv(os.path.join(data_dir, "kyc_demo.csv"))
+income = pd.read_csv(os.path.join(data_dir, "income_history.csv"))
+insurance = pd.read_csv(os.path.join(data_dir, "insurance.csv"))
+# -------------------------------
 
 
-class CreditInput(BaseModel):
-    worker_id: str
-    avg_monthly_income: float
-    income_stability: float
-    active_months_on_platform: int
-    tasks_or_delivery_per_month: int
-    avg_bank_balance: float
-    past_loan: int
-    repayment_percentage: float
-    missed_emi: int
-    income_shock: int
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
+    # Optional: seed workers from KYC into DB once
+    # with Session(engine) as session: ...
 
 
 @app.get("/")
-def read_root():
-    return {"message": "✅ Gig Worker Credit Score API LIVE!", "accuracy": "97.5%"}
+async def root():
+    return {
+        "status": "Finbridge Backend 2.0 Ready!",
+        "workers": int(len(kyc)),
+        "transactions": int(len(transactions)),
+    }
 
 
-# ---------- NEW GET ENDPOINT ----------
+@app.get("/workers", response_model=list[WorkerSummary])
+async def list_workers():
+    return [{"id": row.worker_id, "name": row.name} for _, row in kyc.iterrows()]
+
+
 @app.get("/worker/{worker_id}")
-def get_worker(worker_id: str):
-    worker = workers_db.get(worker_id)
-    if not worker:
+async def get_worker(worker_id: str):
+    if worker_id not in kyc.worker_id.values:
         raise HTTPException(status_code=404, detail="Worker not found")
-    return worker
-# ---------------------------------------
+    k = kyc[kyc.worker_id == worker_id].iloc[0]
+    ins = insurance[insurance.worker_id == worker_id].iloc[0]
+    txns = transactions[transactions.worker_id == worker_id].tail(10)
+    inc = income[income.worker_id == worker_id].tail(6)
+    return {
+        "kyc": k.to_dict(),
+        "insurance": ins.to_dict(),
+        "transactions": txns.to_dict("records"),
+        "income": inc.to_dict("records"),
+    }
 
 
-@app.post("/predict")
-def predict(data: CreditInput):
-    try:
-        input_df = pd.DataFrame(
-            [
-                {
-                    "avg_monthly_income": data.avg_monthly_income,
-                    "income_stability": data.income_stability,
-                    "active_months_on_platform": data.active_months_on_platform,
-                    "tasks_or_delivery_per_month": data.tasks_or_delivery_per_month,
-                    "avg_bank_balance": data.avg_bank_balance,
-                    "past_loan": int(data.past_loan),
-                    "repayment_percentage": data.repayment_percentage,
-                    "missed_emi": int(data.missed_emi),
-                    "income_shock": int(data.income_shock),
-                }
-            ]
-        )
-
-        prediction = model.predict(input_df)
-        credit_score = float(prediction[0])
-        if credit_score < 4.0:
-         loan_status = "✅ Micro Loan Approved: ₹1,000 – ₹3,000"
-
-        elif 4.0 <= credit_score <= 4.9:
-         loan_status = "✅ Micro Loan Approved: ₹3,001 – ₹6,000"
-
-        elif 5.0 <= credit_score <= 5.7:
-         loan_status = "✅ Micro Loan Approved: ₹6,001 – ₹10,000"
-
-        elif 5.8 <= credit_score <= 6.2:
-         loan_status = "✅ Micro Loan Approved: ₹10,001 – ₹15,000"
-
-        elif 6.3 <= credit_score <= 6.49:
-         loan_status = "✅ Micro Loan Approved: ₹15,001 – ₹19,000"
-
-        elif 6.5 <= credit_score <= 6.9:
-         loan_status = "✅ Loan Approved: ₹20,000 – ₹40,000"
-
-        elif 7.0 <= credit_score <= 7.5:
-         loan_status = "✅ Loan Approved: ₹40,001 – ₹75,000"
-
-        elif 7.6 <= credit_score <= 8.2:
-         loan_status = "✅ Loan Approved: ₹75,001 – ₹1,20,000"
-
-        elif 8.3 <= credit_score <= 9.0:
-         loan_status = "✅ Loan Approved: ₹1,20,001 – ₹1,60,000"
-
-        elif 9.1 <= credit_score <= 9.9:
-         loan_status = "✅ Loan Approved: ₹1,60,001 – ₹2,00,000"
-
-        else:
-         loan_status = "⚠️ Invalid Credit Score"
+@app.get("/history/{worker_id}")
+async def history(worker_id: str):
+    if worker_id not in kyc.worker_id.values:
+        raise HTTPException(404, "Worker not found")
+    return transactions[transactions.worker_id == worker_id].to_dict("records")
 
 
-
-        return {
-            "worker_id": data.worker_id,
-            "credit_score": round(credit_score, 2),
-            "loan_status": loan_status,
-            "confidence": "97.5%",
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.get("/demo/uber/{worker_id}")
-def demo_uber(worker_id: str):
-    data = CreditInput(
-        worker_id=worker_id,
-        avg_monthly_income=42000,
-        income_stability=85,
-        active_months_on_platform=28,
-        tasks_or_delivery_per_month=55,
-        avg_bank_balance=22000,
-        past_loan=1,
-        repayment_percentage=92,
-        missed_emi=0,
-        income_shock=0,
+@app.post("/predict", response_model=PredictResponse)
+async def predict(request: PredictRequest, session: Session = Depends(get_session)):
+    score = round(
+        4.0
+        + (request.avg_monthly_income / 5000)
+        + (request.hours_worked / 50),
+        2,
     )
-    return predict(data)
+    status = "APPROVED" if score > 6.5 else "REJECTED"
 
-
-@app.get("/demo/zomato/{worker_id}")
-def demo_zomato(worker_id: str):
-    data = CreditInput(
-        worker_id=worker_id,
-        avg_monthly_income=35000,
-        income_stability=78,
-        active_months_on_platform=24,
-        tasks_or_delivery_per_month=65,
-        avg_bank_balance=18000,
-        past_loan=0,
-        repayment_percentage=88,
-        missed_emi=1,
-        income_shock=0,
+    # Optional: store worker snapshot in DB
+    worker = Worker(
+        worker_id=request.worker_id,
+        name=request.worker_id,  # or look up from kyc
+        age=request.age,
+        avg_monthly_income=request.avg_monthly_income,
+        hours_worked=request.hours_worked,
     )
-    return predict(data)
+    session.add(worker)
+    session.commit()
 
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    return PredictResponse(
+        worker_id=request.worker_id,
+        credit_score=score,
+        status=status,
+        loan_amount=50000 if score > 6.5 else 0,
+        message=f"Loan {status.lower()}",
+    )
